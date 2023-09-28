@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import {
+	addDoc,
+	collection,
+	deleteDoc,
+	doc,
+	onSnapshot,
+	query,
+	updateDoc,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import Todo from "./Todo";
+import { db } from "./firebase";
 
 const style = {
-	bg: `h-screen w-screen bg-gradient-to-r from-[#2F80ED] to-[#1CB5E0] flex justify-center items-center p-3`,
+	bg: `min-h-screen w-screen bg-gradient-to-r from-[#2F80ED] to-[#1CB5E0] flex justify-center items-center p-3`,
 	container: `bg-slate-100 max-w-[500px] w-full m-auto rounded-md shadow-xl p-4`,
 	heading: `text-3xl font-bold text-center text-gray-800 p-2`,
 	form: `flex justify-between`,
@@ -13,14 +23,61 @@ const style = {
 };
 
 function App() {
-	const [todos, setTodos] = useState(["learn React", "learn Tailwind"]);
+	const [todos, setTodos] = useState([]);
+	const [input, setInput] = useState("");
+
+	// Create TODO
+	const createTodo = async (e) => {
+		e.preventDefault(e);
+		if (input === "") {
+			alert("Please enter a TODO");
+			return;
+		}
+		await addDoc(collection(db, "todos"), {
+			text: input,
+			completed: false,
+		});
+		setInput("");
+	};
+
+	// Read TODO
+	useEffect(() => {
+		const q = query(collection(db, "todos"));
+		const unsubscribe = onSnapshot(q, (querySnapshot) => {
+			let todosArray = [];
+			querySnapshot.forEach((doc) => {
+				todosArray.push({ ...doc.data(), id: doc.id });
+			});
+			setTodos(todosArray);
+		});
+		return () => {
+			unsubscribe();
+		};
+	}, []);
+
+	// Update TODO
+	const toggleComplete = async (todo) => {
+		await updateDoc(doc(db, "todos", todo.id), {
+			completed: !todo.completed,
+		});
+	};
+
+	// Delete TODO
+	const deleteTodo = async (id) => {
+		await deleteDoc(doc(db, "todos", id));
+	}
 
 	return (
 		<div className={style.bg}>
 			<div className={style.container}>
 				<h3 className={style.heading}>WHAT TO-DO</h3>
-				<form className={style.form}>
+				<form
+					onSubmit={createTodo}
+					className={style.form}
+				>
 					<input
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
 						type="text"
 						placeholder="Add TO-DO"
 						className={style.input}
@@ -34,10 +91,16 @@ function App() {
 						<Todo
 							key={index}
 							todo={todo}
+							toggleComplete={toggleComplete}
+							deleteTodo={deleteTodo}
 						/>
 					))}
 				</ul>
-				<p className={style.count}>You have 2 TO-DOs</p>
+				{todos.length < 1 ? null : (
+					<p className={style.count}>{`You have ${
+						todos.filter((todo) => !todo.completed).length
+					} incomplete todos`}</p>
+				)}
 			</div>
 		</div>
 	);
