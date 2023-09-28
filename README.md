@@ -5,8 +5,16 @@ This is a basic TO-DO application built using React and Tailwind. It uses fireba
 1. Clone the repo
 2. Run `npm install`
 3. Create a firebase project and add the config variables to a ```.env``` file in the root directory of the project
-4. Run `npm start`
-5. Enjoy!
+   ``` cmd
+      REACT_APP_API_KEY=
+	  REACT_APP_AUTHDOMAIN=
+	  REACT_APP_PROJECT_ID=
+	  REACT_APP_STORAGE_BUCKET=
+	  REACT_APP_MESSAGING_SENDER_ID=
+	  REACT_APP_APP_ID=
+   ```
+5. Run `npm start`
+6. Enjoy!
 
 ## Docs 
 - [Firebase](https://firebase.google.com/docs)
